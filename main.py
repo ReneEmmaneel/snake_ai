@@ -24,7 +24,7 @@ def init():
         steps += 1
         if Game.stop:
             Game = new_game(grid_size)
-        #msElapsed = clock.tick(10)
+        msElapsed = clock.tick(50)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -51,8 +51,10 @@ def new_game(grid_size):
         return AI.Random_walk(grid_size)
     elif args.lower() == 'a_star':
         return AI.A_star(grid_size)
-    elif args.lower() == 'hamilton':
+    elif args.lower() == 'hamilton_simple':
         return AI.Hamilton_simple(grid_size)
+    elif args.lower() == 'hamilton':
+        return AI.Hamilton_improved(grid_size)
     else:
         return game.Game(grid_size)
 
