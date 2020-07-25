@@ -11,15 +11,16 @@ BLACK = (0,0,0)
 
 def init():
     #Game = game.Game((30,30))
-    Game = AI.Astar((30,30))
+    grid_size = (30,30)
+    Game = new_game(grid_size)
 
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((600,600))
     while True:
         if Game.stop:
-            Game = AI.Astar((30,30))
-        msElapsed = clock.tick(10)
+            Game = new_game(grid_size)
+        msElapsed = clock.tick(50)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -39,5 +40,15 @@ def init():
         Game.draw((0, 0, 600, 600), screen)
         pygame.display.update()
 
+args = ""
+def new_game(grid_size):
+    if args == 'Random_walk':
+        return AI.Random_walk(grid_size)
+    elif args == 'A_star':
+        return AI.A_star(grid_size)
+    else:
+        return game.Game(grid_size)
+
 if __name__ == '__main__':
+    args = sys.argv[1] if len(sys.argv) > 1 else ''
     init()

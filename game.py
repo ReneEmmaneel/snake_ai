@@ -16,6 +16,10 @@ class Game():
         self.new_dir = (1,0)
         self.AI = False
         self.stop = False
+        self.custom_init()
+
+    def custom_init(self):
+        pass
 
     #change direction if new_dir is not the opposite direction than self.dir
     def change_dir(self, new_dir):
@@ -29,19 +33,33 @@ class Game():
         self.dir = self.new_dir
         self.move()
 
+    #returns true if pos is inside self.grid_size values
+    def pos_in_grid(self, pos):
+        return pos[0] >= 0 and pos[0] < self.grid_size[0] and pos[1] >= 0 and pos[1] < self.grid_size[1]
+
+    def add_tuple(a, b):
+        return (a[0] + b[0], a[1] + b[1])
+
+    def sub_tuple(a, b):
+        return (a[0] - b[0], a[1] - b[1])
+
     #move in direction in self.dir
     def move(self):
-        self.snake.append((self.snake[-1][0] + self.dir[0], self.snake[-1][1] + self.dir[1]))
+        if (abs(self.dir[0] + self.dir[1]) != 1):
+            print('illegal direction')
+            self.game_over()
+
+        self.snake.append(Game.add_tuple(self.snake[-1], self.dir))
 
         #out of grid
-        if self.snake[-1][0] < 0 or self.snake[-1][0] >= self.grid_size[0] or self.snake[-1][1] < 0 or self.snake[-1][1] >= self.grid_size[1]:
+        if not self.pos_in_grid(self.snake[-1]):
             self.game_over()
         #front of snake runs into self
         elif self.snake[-1] in self.snake[1:-1]:
             self.game_over()
         else:
             if self.snake[-1] == self.apple:
-                self.generate_apple()
+                self.eat_apple()
             else:
                 del self.snake[0]
 
@@ -50,6 +68,9 @@ class Game():
 
     def generate_snake(self):
         self.snake = [(0,0),(1,0),(2,0)]
+
+    def eat_apple(self):
+        self.generate_apple()
 
     def generate_apple(self):
         all_possible_pos = [pos for pos in self.all_pos if pos not in self.snake]
