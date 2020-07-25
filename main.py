@@ -17,10 +17,14 @@ def init():
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((600,600))
+
+    render_frame_rate = 1
+    steps = 0
     while True:
+        steps += 1
         if Game.stop:
             Game = new_game(grid_size)
-        msElapsed = clock.tick(50)
+        #msElapsed = clock.tick(10)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -35,17 +39,20 @@ def init():
                         Game.change_dir((0,-1))
                     elif event.key == pygame.K_DOWN:
                         Game.change_dir((0,1))
-        screen.fill(WHITE)
         Game.update()
-        Game.draw((0, 0, 600, 600), screen)
+        if steps % render_frame_rate == 0:
+            screen.fill(WHITE)
+            Game.draw((0, 0, 600, 600), screen)
         pygame.display.update()
 
 args = ""
 def new_game(grid_size):
-    if args == 'Random_walk':
+    if args.lower() == 'random_walk':
         return AI.Random_walk(grid_size)
-    elif args == 'A_star':
+    elif args.lower() == 'a_star':
         return AI.A_star(grid_size)
+    elif args.lower() == 'hamilton':
+        return AI.Hamilton_simple(grid_size)
     else:
         return game.Game(grid_size)
 

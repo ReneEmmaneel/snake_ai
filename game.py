@@ -74,7 +74,11 @@ class Game():
 
     def generate_apple(self):
         all_possible_pos = [pos for pos in self.all_pos if pos not in self.snake]
-        self.apple = random.choice(all_possible_pos)
+        if len(all_possible_pos) == 0:
+            print('win!')
+            self.game_over()
+        else:
+            self.apple = random.choice(all_possible_pos)
 
     def draw(self, dim, screen):
         #self.draw_grid(dim, screen)
@@ -93,42 +97,50 @@ class Game():
     def draw_snake_and_apple(self, dim, screen):
         left, top, width, height = dim
 
-        #draw snake
-        prev = self.snake[0]
-        curr = self.snake[1]
-        self.draw_snake_part(screen, dim, None, prev, curr)
-        for next in self.snake[2:]:
-
-            self.draw_snake_part(screen, dim, prev, curr, next)
-
-            prev = curr
-            curr = next
-        self.draw_snake_part(screen, dim, prev, curr, None)
+        line_width = 0.2
+        color = GREEN
+        self.draw_line(screen, dim, line_width, color, self.snake)
 
         #draw apple
         x_grid_size = width / self.grid_size[0]
         y_grid_size = height / self.grid_size[1]
         x_pos = left + (self.apple[0] / self.grid_size[0] * width)
         y_pos = top + (self.apple[1] / self.grid_size[1] * height)
-        pygame.draw.rect(screen, RED, (x_pos + 1, y_pos + 1, x_grid_size - 1, y_grid_size - 1))
+        pygame.draw.ellipse(screen, RED, (x_pos + 1, y_pos + 1, x_grid_size - 1, y_grid_size - 1))
 
-    def draw_snake_part(self, screen, dim, prev, curr, next):
+    def draw_line(self, screen, dim, line_width, color, line_list):
+
+        if len(line_list) == 0 or len(line_list) == 1:
+            return
+
+        prev = line_list[0]
+        curr = line_list[1]
+        self.draw_line_part(screen, dim, line_width, color, None, prev, curr)
+        for next in line_list[2:]:
+
+            self.draw_line_part(screen, dim, line_width, color, prev, curr, next)
+
+            prev = curr
+            curr = next
+        self.draw_line_part(screen, dim, line_width, color, prev, curr, None)
+
+    def draw_line_part(self, screen, dim, line_width, color, prev, curr, next):
         left, top, width, height = dim
 
         x_grid_size = width / self.grid_size[0]
         y_grid_size = height / self.grid_size[1]
 
-        snake_width = x_grid_size * 0.2
+        snake_width = x_grid_size * line_width
 
         x_pos = left + (curr[0] / self.grid_size[0] * width)
         y_pos = top + (curr[1] / self.grid_size[1] * height)
 
         #look to each direction
         if Game.add_tuple(curr, (1,0)) in [prev, next]:
-            pygame.draw.rect(screen, GREEN, (x_pos + snake_width, y_pos + snake_width, x_grid_size - 1 * snake_width + 1, y_grid_size - 2 * snake_width + 1))
+            pygame.draw.rect(screen, color, (x_pos + snake_width, y_pos + snake_width, x_grid_size - 1 * snake_width + 1, y_grid_size - 2 * snake_width + 1))
         if Game.add_tuple(curr, (0,1)) in [prev, next]:
-            pygame.draw.rect(screen, GREEN, (x_pos + snake_width, y_pos + snake_width, x_grid_size - 2 * snake_width + 1, y_grid_size - 1 * snake_width + 1))
+            pygame.draw.rect(screen, color, (x_pos + snake_width, y_pos + snake_width, x_grid_size - 2 * snake_width + 1, y_grid_size - 1 * snake_width + 1))
         if Game.add_tuple(curr, (-1,0)) in [prev, next]:
-            pygame.draw.rect(screen, GREEN, (x_pos, y_pos + snake_width, x_grid_size - 1 * snake_width + 1, y_grid_size - 2 * snake_width + 1))
+            pygame.draw.rect(screen, color, (x_pos, y_pos + snake_width, x_grid_size - 1 * snake_width + 1, y_grid_size - 2 * snake_width + 1))
         if Game.add_tuple(curr, (0,-1)) in [prev, next]:
-            pygame.draw.rect(screen, GREEN, (x_pos + snake_width, y_pos, x_grid_size - 2 * snake_width + 1, y_grid_size - 1 * snake_width + 1))
+            pygame.draw.rect(screen, color, (x_pos + snake_width, y_pos, x_grid_size - 2 * snake_width + 1, y_grid_size - 1 * snake_width + 1))

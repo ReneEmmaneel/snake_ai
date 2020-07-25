@@ -10,6 +10,8 @@ class Random_walk(game.Game):
         self.move()
 
 #A_star will simply go to the fruit in a direct path, using the A_star algorithm
+#It will generate a path every time a fruit is eaten.
+#If no path is found, move randomely until a path is found
 class A_star(game.Game):
     def custom_init(self):
         self.path = []
@@ -96,6 +98,65 @@ class A_star(game.Game):
     def eat_apple(self):
         self.generate_apple()
         self.astar()
+
+    def draw(self, dim, screen):
+        #self.draw_grid(dim, screen)
+        line_width = 0.45
+        color = (80,80,80)
+        self.draw_line(screen, dim, line_width, color, self.path + [self.snake[-1]])
+        self.draw_snake_and_apple(dim, screen)
+
+#Generates a hamilton path, and will simply follow it until it is done
+class Hamilton_simple(game.Game):
+    def custom_init(self):
+        self.path = []
+        self.hamilton()
+
+    def update(self):
+        if len(self.path) > 0:
+            self.path_index = (self.path_index + 1) % len(self.path)
+            self.dir = game.Game.sub_tuple(self.path[self.path_index], self.snake[-1])
+            self.move()
+
+    #will generate a hamilton path, and store it in self.path
+    #The path will start at the head of the snake, and stop at the tail.
+    #Then it will add the snake to it, to generate a full cycle
+    def hamilton(self):
+        current_path = self.snake[-1]
+        n = self.grid_size[0] * self.grid_size[1] - len(self.snake) + 2
+
+        self.path = self.hamilton_rec([self.snake[-1]]) + self.snake[1:-1]
+        self.path_index = 0
+
+    def hamilton_rec(self, path):
+        n = self.grid_size[0] * self.grid_size[1] - len(self.snake) + 2
+        directions = [(1,0),(0,1),(-1,0),(0,-1)]
+
+        if len(path) == n:
+            return path if path[-1] == self.snake[0] else None
+        else:
+            for dir in directions:
+                pos = game.Game.add_tuple(path[-1], dir)
+                if pos in path:
+                    continue
+                elif pos in self.snake[1:]:
+                    continue
+                elif not self.pos_in_grid(pos):
+                    continue
+                else:
+                    result = self.hamilton_rec(path + [pos])
+                    if result == None:
+                        continue
+                    else:
+                        return result
+            return None
+
+    def draw(self, dim, screen):
+        #self.draw_grid(dim, screen)
+        line_width = 0.48
+        color = (150,150,150)
+        self.draw_line(screen, dim, line_width, color, self.path + [self.path[0]])
+        self.draw_snake_and_apple(dim, screen)
 
 def distance(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] + pos2[1])
