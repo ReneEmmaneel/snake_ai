@@ -161,9 +161,13 @@ class Hamilton_simple(game.Game):
             self.draw_line(screen, dim, line_width, color, self.path + [self.path[0]])
         self.draw_snake_and_apple(dim, screen)
 
+#Every time a new apple is generated, find a short route to the new apple,
+#while guaranteeing that a hamilton path from that point is possible,
+#that does not go through the snake
 class Hamilton_improved(Hamilton_simple):
     def custom_init(self):
         self.path = []
+        self.hamilton_path = []
         self.astar_and_hamilton()
 
     def update(self):
@@ -171,6 +175,14 @@ class Hamilton_improved(Hamilton_simple):
             self.dir = game.Game.sub_tuple(self.path[self.path_index], self.snake[-1])
             self.path_index = (self.path_index + 1) % len(self.path)
             self.move()
+        elif len(self.hamilton_path) > 0:
+            #first find correct index
+            index = self.hamilton_path.index(self.snake[-1])
+            self.dir = game.Game.sub_tuple(self.hamilton_path[index + 1], self.snake[-1])
+            self.move()
+
+    def custom_eat_apple(self):
+        self.astar_and_hamilton()
 
     #it will first find the astar path to the fruit, and test if a
     #hamilton path exist using that path.
@@ -185,18 +197,40 @@ class Hamilton_improved(Hamilton_simple):
 
         found_path = self.hamilton_rec(path, wall[1:], wall[0])
         if found_path == None:
-            self.hamilton()
+            self.path = []
+            if len(self.hamilton_path) == 0:
+                self.hamilton()
         else:
-            n = self.grid_size[0] * self.grid_size[1]
-            self.path = snake_plus_path[len(self.snake):] + found_path[1:]
-            self.path = self.path[:n]
+            #the a* path has to be reversed, and then the first index cut out from it
+            self.hamilton_path = found_path + wall[1:]
+            self.path = a_star_path[::-1]
             self.path_index = 0
+            self.hamilton_path_index = 0
 
+    #creates a hamilton path without guaranteeing a short path to the apple,
+    #as a backup strategy
     def hamilton(self):
         found_path = self.hamilton_rec([self.snake[-1]], self.snake[1:], self.snake[0]) + self.snake[1:-1]
         if len(found_path) > 0:
-            self.path = found_path
-            self.path_index = 0
+            self.hamilton_path = found_path
+            self.hamilton_path_index = 0
+
+    def draw(self, dim, screen):
+        #self.draw_grid(dim, screen)
+        if len(self.hamilton_path) > 0:
+            line_width = 0.48
+            color = (150,150,150)
+            self.draw_line(screen, dim, line_width, color, self.hamilton_path + [self.hamilton_path[0]])
+        if len(self.path) > 0:
+            line_width = 0.46
+            color = (30,30,30)
+            if self.snake[-1] in self.path:
+                index = self.path.index(self.snake[-1])
+                path_to_draw = self.path[index:]
+            else:
+                path_to_draw = [self.snake[-1]] + self.path
+            self.draw_line(screen, dim, line_width, color, path_to_draw)
+        self.draw_snake_and_apple(dim, screen)
 
 def distance(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] + pos2[1])

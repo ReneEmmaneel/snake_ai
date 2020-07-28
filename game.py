@@ -71,6 +71,10 @@ class Game():
 
     def eat_apple(self):
         self.generate_apple()
+        self.custom_eat_apple()
+
+    def custom_eat_apple(self):
+        pass
 
     def generate_apple(self):
         all_possible_pos = [pos for pos in self.all_pos if pos not in self.snake]

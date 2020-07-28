@@ -11,7 +11,7 @@ BLACK = (0,0,0)
 
 def init():
     #Game = game.Game((30,30))
-    grid_size = (30,30)
+    grid_size = (15,15)
     Game = new_game(grid_size)
 
     pygame.init()
@@ -24,7 +24,7 @@ def init():
         steps += 1
         if Game.stop:
             Game = new_game(grid_size)
-        msElapsed = clock.tick(50)
+        msElapsed = clock.tick(1)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
