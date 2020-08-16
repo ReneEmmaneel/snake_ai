@@ -16,7 +16,8 @@ class Game():
         self.new_dir = (1,0)
         self.AI = False
         self.stop = False
-        self.custom_init()
+        self.waiting = True
+        self.draw_steps = True
 
     def custom_init(self):
         pass

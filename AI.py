@@ -7,7 +7,9 @@ class Random_walk(game.Game):
     def update(self):
         directions = [(-1,0),(0,-1),(1,0),(0,1)]
         possible_directions = [pos for pos in directions if pos != tuple([x * -1 for x in self.dir])]
-        self.dir = random.choice(possible_directions)
+        if len(possible_directions) == 0:
+            self.dir = random.choice(possible_directions)
+
         self.move()
 
 #A_star will simply go to the fruit in a direct path, using the A_star algorithm
@@ -127,10 +129,27 @@ class Hamilton_simple(game.Game):
         current_path = self.snake[-1]
         n = self.grid_size[0] * self.grid_size[1] - len(self.snake) + 2
 
+        self.path = []
         self.path = self.hamilton_rec([self.snake[-1]], self.snake[1:], self.snake[0]) + self.snake[1:-1]
         self.path_index = 0
 
     def hamilton_rec(self, path, wall, goal):
+        try:
+            if self.draw_steps:
+                self.screen.fill((255,255,255))
+                self.draw(self.dim, self.screen)
+                self.draw_line(self.screen, self.dim, 0.45, (0,0,200), wall + path)
+                self.pygame.display.update()
+        except AttributeError:
+            pass
+
+        if not self.check_one_group(path[1:] + wall + [goal], goal):
+            return None
+
+        if len(path) > 2:
+            if not self.check_no_dead_ends(path[1:] + wall + [goal], path[-1], goal):
+                return None
+
         n = self.grid_size[0] * self.grid_size[1] - len(self.snake) + 2
         directions = [(1,0),(0,1),(-1,0),(0,-1)]
 
@@ -139,6 +158,8 @@ class Hamilton_simple(game.Game):
         else:
             for dir in directions:
                 pos = game.Game.add_tuple(path[-1], dir)
+                if pos == goal and len(path) < n - 1:
+                    continue
                 if pos in path:
                     continue
                 elif pos in wall:
@@ -152,6 +173,50 @@ class Hamilton_simple(game.Game):
                     else:
                         return result
             return None
+
+    #returns true if the remaining open tiles are split in 2 or more disconnected groups
+    def check_one_group(self, wall, goal):
+        remaining_tiles = [pos for pos in self.all_pos if pos not in wall]
+        directions = [(1,0),(0,1),(-1,0),(0,-1)]
+
+        found_goal = False
+
+        if len(remaining_tiles) == 0:
+            return True
+
+        open = [remaining_tiles[0]]
+        remaining_tiles.pop(0)
+
+        while(len(open) > 0):
+            for dir in directions:
+                pos = game.Game.add_tuple(open[0], dir)
+                if not found_goal:
+                    found_goal = pos == goal
+                if pos in remaining_tiles:
+                    remaining_tiles.remove(pos)
+                    open.append(pos)
+            open.pop(0)
+
+        return len(remaining_tiles) == 0 and found_goal
+
+    #returns true if remaining open tiles do not contain dead ends.
+    #dead end is if a cell has 3 walls, none of which is 'start' or 'end'
+    def check_no_dead_ends(self, wall, start, end):
+        remaining_tiles = [pos for pos in self.all_pos if pos not in wall]
+        directions = [(1,0),(0,1),(-1,0),(0,-1)]
+
+        for tile in remaining_tiles:
+            surrounded = 0
+            for dir in directions:
+                pos = game.Game.add_tuple(tile, dir)
+                if pos == start or pos == end:
+                    break
+                if pos not in remaining_tiles:
+                    surrounded += 1
+            if surrounded >= 3:
+                return False
+        return True
+
 
     def draw(self, dim, screen):
         #self.draw_grid(dim, screen)

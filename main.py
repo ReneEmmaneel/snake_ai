@@ -4,6 +4,8 @@ import sys
 import game
 import AI
 
+draw_search = True
+
 WHITE = (255,255,255)
 GREEN = (0,255,0)
 RED   = (255,0,0)
@@ -11,12 +13,22 @@ BLACK = (0,0,0)
 
 def init():
     #Game = game.Game((30,30))
-    grid_size = (15,15)
+    grid_size = (10,10)
     Game = new_game(grid_size)
-
     pygame.init()
-    clock = pygame.time.Clock()
+
     screen = pygame.display.set_mode((600,600))
+
+    if draw_search:
+        Game.screen = screen
+        Game.dim = (0, 0, 600, 600)
+        Game.pygame = pygame
+
+    pygame.display.update()
+
+    Game.custom_init()
+
+    clock = pygame.time.Clock()
 
     render_frame_rate = 1
     steps = 0
@@ -24,7 +36,8 @@ def init():
         steps += 1
         if Game.stop:
             Game = new_game(grid_size)
-        msElapsed = clock.tick(1)
+            Game.custom_init()
+        msElapsed = clock.tick(20)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
